@@ -1,14 +1,16 @@
-package database
+package main
 
 import (
 	"log"
 
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/lib/pq"
 	"github.com/victorbrugnolo/video-encoder/domain"
 )
 
 type Database struct {
-	Db            gorm.DB
+	Db            *gorm.DB
 	Dsn           string
 	DsnTest       string
 	DbType        string
@@ -41,9 +43,10 @@ func (d *Database) Connect() (*gorm.DB, error) {
 
 	if d.AutoMigrateDb {
 		d.Db.AutoMigrate(&domain.Video{}, &domain.Job{})
+		d.Db.Model(domain.Job{}).AddForeignKey("video_id", "videos (id)", "CASCADE", "CASCADE")
 	}
 
-	return &d.Db, nil
+	return d.Db, nil
 }
 
 func NewDbTest() *gorm.DB {
